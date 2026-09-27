@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi Plan de Salud</title>
+<style>
+  :root{
+    --bg:#0f1216; --card:#171b21; --line:#252b34; --txt:#e6e9ee; --dim:#8b95a5;
+    --ac:#4ade80; --ac2:#38bdf8; --warn:#fbbf24; --bad:#f87171;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 20px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .stat .k{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:24px;font-weight:600;margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card.full{grid-column:1/-1}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);margin:0 0 12px;font-weight:600}
+  label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+  input[type=time],input[type=number],input[type=date]{
+    width:100%;background:#0d1014;color:var(--txt);border:1px solid var(--line);
+    border-radius:7px;padding:9px;font:inherit;font-size:14px}
+  input:focus{outline:none;border-color:var(--ac2)}
+  button{font:inherit;cursor:pointer;border-radius:7px;padding:9px 14px;border:1px solid var(--line);
+    background:#0d1014;color:var(--txt)}
+  button:hover{border-color:var(--ac2)}
+  button.p{background:var(--ac);color:#052e16;border-color:var(--ac);font-weight:600}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .hours{font-size:26px;font-weight:600;margin:6px 0 0}
+  .hours.ok{color:var(--ac)} .hours.mid{color:var(--warn)} .hours.low{color:var(--bad)}
+  .note{font-size:12px;color:var(--dim);margin-top:6px}
+  .bar{height:8px;background:#0d1014;border-radius:99px;overflow:hidden;margin-top:10px;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;background:var(--ac);transition:width .25s}
+  .qs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .qs button{padding:7px 11px;font-size:13px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 4px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .tog{cursor:pointer;user-select:none}
+  .tog.on{color:var(--ac);border-color:var(--ac);background:#0f2018}
+  .rules{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+  .rules li{margin-bottom:5px}
+  .rules b{color:var(--txt);font-weight:600}
+  .ok{color:var(--ac)} .dim{color:var(--dim)} .bad{color:var(--bad)}
+  .export{margin-top:8px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mi Plan de Salud</h1>
+  <p class="sub">Objetivo: dormir 8.5 h · 110 g de proteína · 3 días de entrenamiento · subir de peso en músculo</p>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Sueño prom. 7 días</div><div class="v dim" id="s-avg">—</div></div>
+    <div class="stat"><div class="k">Racha (días)</div><div class="v dim" id="s-str">—</div></div>
+    <div class="stat"><div class="k">Peso actual</div><div class="v dim" id="s-wt">—</div></div>
+    <div class="stat"><div class="k">Cambio total</div><div class="v dim" id="s-dw">—</div></div>
+  </div>
+  <p class="sub" id="s-hint">▼ Empieza abajo: registra el sueño de hoy y estos números se llenan solos.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Sueño de hoy</h2>
+      <label>Fecha</label><input type="date" id="f-date">
+      <div class="row">
+        <div style="flex:1"><label>Me acosté</label><input type="time" id="f-bed" value="05:00"></div>
+        <div style="flex:1"><label>Me levanté</label><input type="time" id="f-up" value="12:00"></div>
+      </div>
+      <p class="hours" id="f-hrs">—</p>
+      <div class="note" id="f-msg">Objetivo: 8 h o más.</div>
+      <div class="row" style="margin-top:12px">
+        <button class="p" onclick="saveSleep()">Guardar sueño</button>
+        <button onclick="clearDay()">Borrar día</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Proteína de hoy</h2>
+      <label>Total (gramos) · meta 110 g</label>
+      <input type="number" id="f-pro" min="0" max="400" step="5" placeholder="0">
+      <div class="qs">
+        <button onclick="addP(6)">+6 huevo</button>
+        <button onclick="addP(25)">+25 pollo</button>
+        <button onclick="addP(26)">+26 atún</button>
+        <button onclick="addP(8)">+8 leche</button>
+        <button onclick="addP(20)">+20 shake</button>
+      </div>
+      <div class="bar"><i id="f-bar" style="width:0%"></i></div>
+      <div class="note" id="f-pmsg">Aún sin registrar.</div>
+      <label style="margin-top:14px">Entrenamiento de hoy</label>
+      <div class="row">
+        <button class="tog" id="t-train" onclick="togTrain()">Entrené</button>
+        <span class="note" style="margin:0">Cuerpo completo · 3× por semana</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Peso</h2>
+      <label>Kilogramos</label>
+      <input type="number" id="f-wt" step="0.1" min="30" max="200" placeholder="70.0">
+      <div class="row" style="margin-top:10px">
+        <button class="p" onclick="saveWeight()">Guardar peso</button>
+      </div>
+      <div class="note" style="margin-top:10px">Pésate <b>en ayunas</b>, después del baño, siempre igual. El peso diario fluctúa ±1 kg: mira la tendencia, no el día.</div>
+    </div>
+
+    <div class="card">
+      <h2>Reglas del plan</h2>
+      <ul class="rules">
+        <li><b>La alarma manda.</b> Hora fija de levantarte, fines de semana igual.</li>
+        <li><b>15 min de sol</b> al levantarte. Es lo más importante de la lista.</li>
+        <li>Café <b>solo después</b> de levantarte. Último a las 2 pm.</li>
+        <li>Si no te da sueño, <b>no te quedes en la cama</b>. Sillón, luz tenue.</li>
+        <li><b>Celular fuera 40 min</b> antes de acostarte.</li>
+        <li>3 comidas con proteína + 1 colación. <b>Entrena después de comer</b>.</li>
+        <li>Piel: ácido salicílico (cara) y <b>peróxido de benzoílo</b> en la espalda.</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h2>Últimos 14 días</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Durmió</th><th>Proteína</th><th>Entrenó</th><th>Peso</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table>
+      <div class="row export">
+        <button onclick="wipe()">Borrar todo</button>
+        <span class="note" style="margin:0">Se guarda solo en este navegador.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const K='heric-salud-v1', TARGET=110, MAXH=16;
+const $=id=>document.getElementById(id);
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const load=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}};
+let D=load();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+
+function day(id){ if(!D[id]) D[id]={}; return D[id]; }
+
+// duración en minutos, tolerando cruce de medianoche
+function mins(bed,up){
+  if(!bed||!up) return null;
+  let [h1,m1]=bed.split(':').map(Number), [h2,m2]=up.split(':').map(Number);
+  if([h1,m1,h2,m2].some(isNaN)) return null;
+  let m=(h2*60+m2)-(h1*60+m1); if(m<=0) m+=1440;
+  return m;
+}
+const hrs=(b,u)=>{const m=mins(b,u); return m==null?null:Math.round(m/6)/10};
+// un dato de 0 h o >16 h es un error de captura: no debe contar ni para promedio ni racha
+const valid=h=>h!=null&&h>0&&h<=MAXH;
+
+function saveSleep(){
+  const id=$('f-date').value; if(!id) return;
+  const d=day(id);
+  d.bed=$('f-bed').value; d.up=$('f-up').value;
+  if(d.pro==null) d.pro=0;
+  save(); render(); flash('f-msg','Guardado. '+msgFor(hrs(d.bed,d.up)),true);
+}
+function msgFor(h){
+  if(h==null) return 'Objetivo: 8 h o más.';
+  if(h===0)   return '⚠ Misma hora de acostarte y de levantarte. Revisa los datos.';
+  if(h>MAXH)  return '⚠ Más de '+MAXH+' h no es sueño real. Revisa los datos.';
+  if(h>=8)    return 'Bien. Eso es lo que buscas.';
+  if(h>=6.5)  return 'Todavía corto. Sube 30 min por semana.';
+  return 'Muy poco. Esto es lo que te está drenando.';
+}
+function clearDay(){
+  const id=$('f-date').value; if(!id) return;
+  delete D[id]; save(); render(); flash('f-msg','Día borrado.',true);
+}
+function addP(g){
+  const id=$('f-date').value; if(!id) return;
+  const d=day(id); d.pro=Math.max(0,(+d.pro||0)+g); save(); render();
+}
+function togTrain(){
+  const id=$('f-date').value; if(!id) return;
+  const d=day(id); d.tr=!d.tr; save(); render();
+}
+function saveWeight(){
+  const id=$('f-date').value, v=parseFloat($('f-wt').value);
+  if(!id||!v) return;
+  day(id).wt=v; save(); render();
+}
+function wipe(){ if(confirm('¿Borrar todo el historial?')){ localStorage.removeItem(K); D={}; render(); } }
+function flash(el,txt,ok){ const e=$(el); e.textContent=txt; e.style.color=ok?'var(--ac)':'var(--dim)'; }
+// valor sin dato = "—" atenuado, para que no parezca un error
+function setStat(id,val,color){
+  const e=$(id); e.textContent=val;
+  e.style.color = val==='—' ? 'var(--dim)' : (color||'');
+}
+
+function render(){
+  const today=iso(new Date());
+  if(!$('f-date').value) $('f-date').value=today;
+  const d=day($('f-date').value);
+
+  $('f-bed').value=d.bed||'05:00';
+  $('f-up').value=d.up||'12:00';
+  // leer de los inputs: si no hay dato guardado, los defaults ya muestran 7 h y deben reflejarse
+  showHrs(hrs($('f-bed').value,$('f-up').value));
+  if(!flashLock) flash('f-msg',msgFor(hrs($('f-bed').value,$('f-up').value)));
+
+  $('f-pro').value=d.pro||0;
+  $('f-bar').style.width=Math.min(100,(d.pro||0)/TARGET*100)+'%';
+  $('f-pmsg').textContent=(d.pro||0)+' / '+TARGET+' g · faltan '+Math.max(0,TARGET-(d.pro||0))+' g';
+  $('t-train').className='tog'+(d.tr?' on':'');
+
+  // promedios y racha (solo datos válidos)
+  const last7=[]; for(let i=0;i<7;i++){const k=iso(new Date(Date.now()-i*864e5)); const v=D[k]?hrs(D[k].bed,D[k].up):null; if(valid(v)) last7.push(v);}
+  const avg=last7.length?(last7.reduce((a,b)=>a+b,0)/last7.length):null;
+  setStat('s-avg', avg==null?'—':avg.toFixed(1)+' h', avg==null?'':(avg>=8?'var(--ac)':avg>=6.5?'var(--warn)':'var(--bad)'));
+  // ¿hay datos reales? (day() crea la entrada vacía del día, así que contar claves no sirve)
+  const hasData=Object.keys(D).some(k=>{const v=D[k]||{};return !!(v.bed||v.up||v.wt||v.pro||v.tr)});
+  $('s-hint').style.display=hasData?'none':'';
+
+  let str=0,c=today;
+  if(!valid(D[c]?hrs(D[c].bed,D[c].up):null)) c=iso(new Date(Date.now()-864e5));
+  while(D[c]&&valid(hrs(D[c].bed,D[c].up))){str++;c=iso(new Date(Date.parse(c+'T12:00:00')-864e5));}
+  setStat('s-str', str, str>0?'':'var(--dim)');
+
+  const ws=Object.keys(D).filter(k=>D[k].wt).sort();
+  setStat('s-wt', ws.length?D[ws[ws.length-1]].wt.toFixed(1)+' kg':'—', ws.length?'':'var(--dim)');
+  if(ws.length>1){const dW=D[ws[ws.length-1]].wt-D[ws[0]].wt;
+    setStat('s-dw',(dW>0?'+':'')+dW.toFixed(1)+' kg', dW>0?'var(--ac)':dW<0?'var(--warn)':'var(--dim)');
+  } else setStat('s-dw','—','var(--dim)');
+
+  let rows='';
+  for(let i=0;i<14;i++){
+    const k=iso(new Date(Date.now()-i*864e5)); const v=D[k];
+    if(!v||(!v.bed&&!v.pro&&!v.wt&&!v.tr)) continue;
+    const hh=hrs(v.bed,v.up);
+    rows+='<tr><td class="'+(k===today?'ok':'dim')+'">'+k.slice(5)+(k===today?' · hoy':'')+'</td>'
+      +'<td class="'+(hh==null?'dim':!valid(hh)?'bad':hh>=8?'ok':'')+'">'+(hh==null?'—':!valid(hh)?'⚠ '+hh+' h':hh+' h')+'</td>'
+      +'<td class="'+(v.pro>=TARGET?'ok':'dim')+'">'+(v.pro||0)+' g</td>'
+      +'<td class="'+(v.tr?'ok':'dim')+'">'+(v.tr?'sí':'—')+'</td>'
+      +'<td class="dim">'+(v.wt||'—')+'</td></tr>';
+  }
+  $('hist').innerHTML=rows||'<tr><td colspan="5" class="dim">Sin datos todavía. Registra el sueño de hoy para empezar.</td></tr>';
+}
+function showHrs(h){
+  const fe=$('f-hrs');
+  fe.textContent=h==null?'—':h+' h';
+  fe.className='hours '+(h==null?'':h>=8&&valid(h)?'ok':valid(h)?'mid':'low');
+}
+let flashLock=false;
+['f-bed','f-up'].forEach(e=>$(e).addEventListener('input',()=>{
+  const h=hrs($('f-bed').value,$('f-up').value);
+  showHrs(h); flash('f-msg',msgFor(h));
+}));
+$('f-date').addEventListener('change',()=>{flashLock=false;render()});
+render();
+</script>
+</body>
+</html>
