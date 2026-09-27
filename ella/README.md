@@ -1,6 +1,6 @@
-# Plan de salud (segunda persona)
+# Plan de salud de Bianca
 
-Pagina independiente de seguimiento: calorias, proteina, agua, fibra,
+Pagina de seguimiento independiente: calorias, proteina, agua, fibra,
 entrenamiento, peso y deposiciones.
 
 Los datos **no** viven en el repositorio. Se guardan solo en el
@@ -8,4 +8,5 @@ Los datos **no** viven en el repositorio. Se guardan solo en el
 porque no se envian a ningun servidor.
 
 - Entrar: https://hericsolorzano-beep.github.io/salud/ella/
-- Para cambiarle el nombre en el titulo: editar la linea 6 de `index.html`.
+- La carpeta se llama `ella` a proposito: las URLs se indexan y se
+  comparten, asi que el nombre no va en el enlace.
