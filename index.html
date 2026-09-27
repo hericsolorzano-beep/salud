@@ -46,6 +46,16 @@
   th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
   .tog{cursor:pointer;user-select:none}
   .tog.on{color:var(--ac);border-color:var(--ac);background:#0f2018}
+  /* reloj de 12 h con AM/PM propio: el <input type=time> nativo usa el idioma
+     del navegador (tu sistema es 24 h) y no deja elegir el formato */
+  .clock{display:flex;align-items:center;gap:3px}
+  .clock select{background:#0d1014;color:var(--txt);border:1px solid var(--line);
+    border-radius:6px;padding:8px 4px;font:inherit;font-size:15px;cursor:pointer}
+  .clock select:focus{outline:none;border-color:var(--ac2)}
+  .clock .sep{color:var(--dim)}
+  .clock .ap{background:#0d1014;color:var(--txt);border:1px solid var(--line);
+    border-radius:6px;padding:8px 9px;font:inherit;font-size:13px;cursor:pointer;min-width:46px}
+  .clock .ap.pm{color:var(--ac);border-color:var(--ac);background:#0f2018}
   .rules{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
   .rules li{margin-bottom:5px}
   .rules b{color:var(--txt);font-weight:600}
@@ -71,8 +81,10 @@
       <h2>Sueño de hoy</h2>
       <label>Fecha</label><input type="date" id="f-date">
       <div class="row">
-        <div style="flex:1"><label>Me acosté</label><input type="time" id="f-bed" value="05:00"></div>
-        <div style="flex:1"><label>Me levanté</label><input type="time" id="f-up" value="12:00"></div>
+        <div style="flex:1"><label>Me acosté</label>
+          <div class="clock" data-ck="bed"></div><input type="hidden" id="f-bed" value="05:00"></div>
+        <div style="flex:1"><label>Me levanté</label>
+          <div class="clock" data-ck="up"></div><input type="hidden" id="f-up" value="12:00"></div>
       </div>
       <p class="hours" id="f-hrs">—</p>
       <div class="note" id="f-msg">Objetivo: 8 h o más.</div>
@@ -195,6 +207,48 @@ function saveWeight(){
 }
 function wipe(){ if(confirm('¿Borrar todo el historial?')){ localStorage.removeItem(K); D={}; render(); } }
 function flash(el,txt,ok){ const e=$(el); e.textContent=txt; e.style.color=ok?'var(--ac)':'var(--dim)'; }
+
+/* ---- reloj de 12 h + AM/PM ----
+   El input hidden guarda siempre "HH:MM" en 24 h, que es el formato que usan
+   mins(), el guardado y la tabla. El reloj visible nunca cambia de formato. */
+const CK={bed:'f-bed',up:'f-up'};
+function pad(n){return String(n).padStart(2,'0')}
+function buildClock(key){
+  const box=document.querySelector(`.clock[data-ck="${key}"]`);
+  let h='<select class="ch" aria-label="hora">';
+  for(let i=1;i<=12;i++) h+=`<option value="${i}">${i}</option>`;
+  h+='</select><span class="sep">:</span><select class="cm" aria-label="minuto">';
+  for(let i=0;i<60;i+=5) h+=`<option value="${pad(i)}">${pad(i)}</option>`;
+  h+='</select>';
+  h+='<button type="button" class="ap am">AM</button>';
+  box.innerHTML=h;
+  const id=CK[key];
+  box.addEventListener('change',()=>{write(id);recalc()});
+  box.querySelector('.ap').addEventListener('click',e=>{
+    const b=e.currentTarget; b.textContent=b.textContent==='AM'?'PM':'AM';
+    b.classList.toggle('pm'); write(id); recalc();
+  });
+}
+// 24 h -> selects
+function paint(id){
+  const key=Object.keys(CK).find(k=>CK[k]===id), box=document.querySelector(`.clock[data-ck="${key}"]`);
+  if(!box) return;
+  const v=$(id).value||'00:00', m=v.split(':').map(Number);
+  let h=((m[0]+11)%12)+1;                       // 0 -> 12, 13 -> 1
+  const ap=box.querySelector('.ap');
+  ap.textContent=m[0]<12?'AM':'PM'; ap.classList.toggle('pm',m[0]>=12);
+  let mi=box.querySelector('.cm');
+  if(![...mi.options].some(o=>o.value===pad(m[1]))) mi.insertAdjacentHTML('afterbegin',`<option value="${pad(m[1])}">${pad(m[1])}</option>`);
+  box.querySelector('.ch').value=h; mi.value=pad(m[1]);
+}
+// selects -> 24 h
+function write(id){
+  const key=Object.keys(CK).find(k=>CK[k]===id), box=document.querySelector(`.clock[data-ck="${key}"]`);
+  const h=+box.querySelector('.ch').value, mi=+box.querySelector('.cm').value;
+  const pm=box.querySelector('.ap').textContent==='PM';
+  $(id).value=pad((h%12)+(pm?12:0))+':'+pad(mi);
+}
+function recalc(){ const h=hrs($('f-bed').value,$('f-up').value); showHrs(h); flash('f-msg',msgFor(h)); }
 // valor sin dato = "—" atenuado, para que no parezca un error
 function setStat(id,val,color){
   const e=$(id); e.textContent=val;
@@ -208,7 +262,8 @@ function render(){
 
   $('f-bed').value=d.bed||'05:00';
   $('f-up').value=d.up||'12:00';
-  // leer de los inputs: si no hay dato guardado, los defaults ya muestran 7 h y deben reflejarse
+  paint('f-bed'); paint('f-up');
+  // leer de los hidden: si no hay dato guardado, los defaults ya muestran 7 h y deben reflejarse
   showHrs(hrs($('f-bed').value,$('f-up').value));
   if(!flashLock) flash('f-msg',msgFor(hrs($('f-bed').value,$('f-up').value)));
 
@@ -255,10 +310,7 @@ function showHrs(h){
   fe.className='hours '+(h==null?'':h>=8&&valid(h)?'ok':valid(h)?'mid':'low');
 }
 let flashLock=false;
-['f-bed','f-up'].forEach(e=>$(e).addEventListener('input',()=>{
-  const h=hrs($('f-bed').value,$('f-up').value);
-  showHrs(h); flash('f-msg',msgFor(h));
-}));
+buildClock('bed'); buildClock('up');
 $('f-date').addEventListener('change',()=>{flashLock=false;render()});
 render();
 </script>
