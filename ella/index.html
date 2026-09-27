@@ -6,66 +6,150 @@
 <title>Plan de Salud de Bianca</title>
 <style>
   :root{
-    --bg:#0f1216; --card:#171b21; --line:#252b34; --txt:#e6e9ee; --dim:#8b95a5;
-    --ac:#4ade80; --ac2:#38bdf8; --warn:#fbbf24; --bad:#f87171; --vio:#c084fc;
+    --bg:#191426; --card:#241d36; --line:#3b3153; --txt:#ece6f7; --dim:#a294ba;
+    --ac:#7fd6a8; --ac2:#8ec5f0; --warn:#f0c070; --bad:#f0909e; --vio:#c3a4ef;
+    --rosa:#e8a8c8; --crema:#f5e0bd; --menta:#a8dcc4;
+    --sombra:0 3px 14px rgba(10,6,20,.45);
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);
-    font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
+  body{margin:0;color:var(--txt);
+    font:15px/1.6 "Quicksand","Comfortaa",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    padding:18px;
+    background:
+      radial-gradient(circle at 10% 6%,  rgba(232,168,200,.20) 0 130px, transparent 131px),
+      radial-gradient(circle at 90% 2%,  rgba(142,197,240,.16) 0 150px, transparent 151px),
+      radial-gradient(circle at 82% 96%, rgba(168,220,196,.14) 0 140px, transparent 141px),
+      radial-gradient(circle at 25% 88%, rgba(195,164,239,.15) 0 120px, transparent 121px),
+      radial-gradient(circle at 60% 40%, rgba(240,224,189,.06) 0 200px, transparent 201px),
+      var(--bg);
+    background-attachment:fixed}
   .wrap{max-width:960px;margin:0 auto}
-  h1{font-size:22px;margin:0 0 4px}
-  .sub{color:var(--dim);font-size:13px;margin:0 0 18px}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px}
-  .stat .k{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
-  .stat .v{font-size:22px;font-weight:600;margin-top:3px}
+
+  /* ---------- chispas de estrella (sin imagenes: solo CSS) ---------- */
+  .wrap::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      radial-gradient(1.6px 1.6px at 18% 22%, #fff 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 62% 12%, #fff8e6 50%, transparent 51%),
+      radial-gradient(1.8px 1.8px at 84% 34%, #fff 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 34% 62%, #e8dcff 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 72% 72%, #fff 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 8% 78%, #ffe9f4 50%, transparent 51%),
+      radial-gradient(1.7px 1.7px at 48% 88%, #fff 50%, transparent 51%);
+    opacity:.5}
+  .wrap > *{position:relative;z-index:1}
+
+  /* ---------- encabezado con dibujos ---------- */
+  .hero{display:flex;align-items:center;gap:14px;margin:0 0 16px;flex-wrap:wrap}
+  .hero-art{width:104px;height:104px;flex:0 0 auto;filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
+  .hero-art.roll{width:88px;height:88px}
+  h1{font-size:23px;margin:0 0 3px;color:#f6f0ff;letter-spacing:.2px}
+  .sub{color:var(--dim);font-size:13px;margin:0}
+  .badge{display:inline-block;margin-top:7px;background:rgba(232,168,200,.10);
+    border:1.5px solid rgba(232,168,200,.42);border-radius:999px;padding:3px 12px;
+    font-size:11.5px;color:var(--rosa);font-weight:700}
+
+  /* ---------- tarjetas y numeros ---------- */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+  .stat{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:13px 14px;
+    box-shadow:var(--sombra)}
+  .stat .k{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+  .stat .v{font-size:23px;font-weight:700;margin-top:3px;color:#fff8ff}
+
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  /* sin esto, un item de grid no baja de su ancho minimo y la pagina
+     se desborda en pantallas angostas */
+  .grid > *{min-width:0}
   @media(max-width:700px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:16px 17px;
+    box-shadow:var(--sombra)}
   .card.full{grid-column:1/-1}
-  h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);margin:0 0 12px;font-weight:600}
-  label{display:block;font-size:12px;color:var(--dim);margin:9px 0 3px}
-  input[type=number],input[type=date]{width:100%;background:#0d1014;color:var(--txt);
-    border:1px solid var(--line);border-radius:7px;padding:9px;font:inherit;font-size:15px}
-  input:focus{outline:none;border-color:var(--ac2)}
-  button{font:inherit;cursor:pointer;border-radius:7px;padding:8px 12px;border:1px solid var(--line);
-    background:#0d1014;color:var(--txt);font-size:14px}
-  button:hover{border-color:var(--ac2)}
-  button.p{background:var(--ac);color:#052e16;border-color:var(--ac);font-weight:600}
-  button.on{color:var(--ac);border-color:var(--ac);background:#0f2018}
+  h2{font-size:12.5px;text-transform:uppercase;letter-spacing:1px;color:var(--rosa);margin:0 0 12px;font-weight:800}
+
+  /* ---------- campos ---------- */
+  label{display:block;font-size:12px;color:var(--dim);margin:9px 0 3px;font-weight:600}
+  input[type=number],input[type=date]{width:100%;background:#1c1730;color:var(--txt);
+    border:1.5px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:15px;
+    font-weight:600}
+  input:focus{outline:none;border-color:var(--rosa);box-shadow:0 0 0 3px rgba(232,168,200,.25)}
+  button{font:inherit;cursor:pointer;border-radius:999px;padding:9px 15px;border:1.5px solid var(--line);
+    background:#2b2340;color:var(--txt);font-size:14px;font-weight:600;transition:transform .12s}
+  button:hover{border-color:var(--rosa);background:#372c4f}
+  button:active{transform:scale(.96)}
+  button.p{background:var(--rosa);color:#3a1c2c;border-color:var(--rosa);font-weight:800}
+  button.p:hover{background:#f0bcd6}
+  button.on{color:#8fe3ba;border-color:var(--ac);background:rgba(127,214,168,.14)}
   .row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-  .bar{height:9px;background:#0d1014;border-radius:99px;overflow:hidden;margin-top:9px;border:1px solid var(--line)}
-  .bar>i{display:block;height:100%;transition:width .25s}
-  .note{font-size:12.5px;color:var(--dim);margin-top:6px}
+  .bar{height:11px;background:#1c1730;border-radius:99px;overflow:hidden;margin-top:9px;border:1.5px solid var(--line)}
+  .bar>i{display:block;height:100%;transition:width .25s;border-radius:99px}
+  .note{font-size:12.5px;color:var(--dim);margin-top:6px;font-weight:600}
   .ok{color:var(--ac)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
-  details{border:1px solid var(--line);border-radius:9px;margin-bottom:9px;background:#141820}
-  summary{cursor:pointer;padding:12px 14px;font-weight:600;font-size:14.5px;list-style:none;
-    display:flex;justify-content:space-between;align-items:center}
+
+  /* ---------- guias plegables ---------- */
+  details{border:1.5px solid var(--line);border-radius:18px;margin-bottom:9px;
+    background:#201a30;overflow:hidden}
+  summary{cursor:pointer;padding:13px 15px;font-weight:700;font-size:14.5px;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;color:#f2ecff}
   summary::-webkit-details-marker{display:none}
-  summary::after{content:"+";color:var(--dim);font-size:19px;font-weight:400}
-  details[open] summary::after{content:"−"}
-  .dbody{padding:0 14px 14px;font-size:14px;color:#cdd4df}
-  .dbody h3{color:var(--ac2);font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 7px}
+  summary::after{content:"+";color:var(--rosa);font-size:20px;font-weight:700;line-height:1}
+  details[open] summary{background:#2b2340;border-bottom:1.5px solid var(--line)}
+  details[open] summary::after{content:"\2212"}
+  .dbody{padding:14px 16px 16px;font-size:14px;color:#d6cce8}
+  .dbody h3{color:var(--ac2);font-size:12.5px;text-transform:uppercase;letter-spacing:.8px;
+    margin:17px 0 7px;font-weight:800}
   .dbody h3:first-child{margin-top:0}
   .dbody ul,.dbody ol{margin:0;padding-left:19px}
   .dbody li{margin-bottom:6px}
-  .dbody b{color:#fff}
+  .dbody b{color:#fff6ff}
+
+  /* ---------- tablas: en pantallas angostas se desplazan solas ---------- */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
-  th{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
-  .alert{border-left:3px solid var(--warn);background:#1d1a12;padding:11px 13px;border-radius:0 7px 7px 0;
-    font-size:13.5px;margin:10px 0}
-  .alert.r{border-left-color:var(--bad);background:#1e1414}
-  .alert.g{border-left-color:var(--ac);background:#0f1d16}
+  th,td{text-align:left;padding:7px 5px;border-bottom:1.5px solid var(--line)}
+  th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:800}
+
+  /* ---------- avisos ---------- */
+  .alert{border-left:5px solid var(--warn);background:rgba(240,192,112,.09);padding:12px 14px;
+    border-radius:0 14px 14px 0;font-size:13.5px;margin:11px 0;color:#ded4ee}
+  .alert.r{border-left-color:var(--bad);background:rgba(240,144,158,.10)}
+  .alert.g{border-left-color:var(--ac);background:rgba(127,214,168,.10)}
+  .alert b{color:#fff6ff}
+
   .qs{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-  .qs button{padding:7px 10px;font-size:13px}
-  .mini{font-size:11.5px;color:var(--dim);text-align:right;margin-top:3px}
+  .qs button{padding:8px 12px;font-size:13px}
+  .mini{font-size:11.5px;color:var(--dim);text-align:right;margin-top:4px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Plan de Salud de Bianca</h1>
-  <p class="sub">1,61 m · 98 kg → 60 kg · 20 años · meta: 1,915 kcal y 130 g de proteína al día</p>
+  <div class="hero">
+    <svg class="hero-art" viewBox="0 0 150 120" role="img" aria-label="Conejito">
+      <ellipse cx="52" cy="34" rx="12" ry="28" fill="#fff" stroke="#e8b9cd" stroke-width="2.5" transform="rotate(-12 52 34)"/>
+      <ellipse cx="98" cy="34" rx="12" ry="28" fill="#fff" stroke="#e8b9cd" stroke-width="2.5" transform="rotate(12 98 34)"/>
+      <ellipse cx="52" cy="34" rx="6" ry="19" fill="#f9c2d4" transform="rotate(-12 52 34)"/>
+      <ellipse cx="98" cy="34" rx="6" ry="19" fill="#f9c2d4" transform="rotate(12 98 34)"/>
+      <ellipse cx="75" cy="77" rx="34" ry="30" fill="#fff" stroke="#e8b9cd" stroke-width="2.5"/>
+      <ellipse cx="63" cy="75" rx="4.2" ry="5" fill="#5b4a63"/>
+      <ellipse cx="87" cy="75" rx="4.2" ry="5" fill="#5b4a63"/>
+      <circle cx="64.4" cy="73" r="1.5" fill="#fff"/>
+      <circle cx="88.4" cy="73" r="1.5" fill="#fff"/>
+      <ellipse cx="75" cy="87" rx="4" ry="3" fill="#f48fb1"/>
+      <ellipse cx="54" cy="86" rx="6.5" ry="4" fill="#fbd0dd" opacity=".9"/>
+      <ellipse cx="96" cy="86" rx="6.5" ry="4" fill="#fbd0dd" opacity=".9"/>
+    </svg>
+    <svg class="hero-art roll" viewBox="0 0 110 110" role="img" aria-label="Rollo de canela">
+      <ellipse cx="55" cy="58" rx="44" ry="40" fill="#f3dcae" stroke="#e0bf85" stroke-width="2.5"/>
+      <path d="M55 32a26 26 0 1 1-23 12" fill="none" stroke="#c78a4c" stroke-width="7" stroke-linecap="round"/>
+      <path d="M56 46a14 14 0 1 1-12 7" fill="none" stroke="#c78a4c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M28 44c8 6 14-2 22 3s12 10 22 4 12 2 10 8" fill="none" stroke="#fff" stroke-width="4.5"
+            stroke-linecap="round" opacity=".95"/>
+      <circle cx="30" cy="26" r="3" fill="#fff3c4"/><circle cx="84" cy="24" r="2.5" fill="#fff3c4"/>
+    </svg>
+    <div>
+      <h1>Plan de Salud de Bianca</h1>
+      <p class="sub">1,61 m &middot; 98 kg &rarr; 60 kg &middot; 20 a&ntilde;os &middot; meta: 1,915 kcal y 130 g de prote&iacute;na al d&iacute;a</p>
+      <span class="badge">&#10084; date de 19 meses, paso a paso</span>
+    </div>
+  </div>
 
   <div class="stats">
     <div class="stat"><div class="k">Peso actual</div><div class="v dim" id="s-wt">—</div></div>
@@ -159,14 +243,14 @@
 
           <h3>Las 3 sesiones (cuerpo completo, 3 veces por semana)</h3>
           <p>Alterna A, B, C — un día de descanso entre cada una.</p>
-          <table>
+          <div class="tw"><table>
             <tr><th>Sesión A</th><th>Sesión B</th><th>Sesión C</th></tr>
             <tr><td>Sentadilla en máquina</td><td>Peso muerto rumano</td><td>Zancadas (sentadilla split)</td></tr>
             <tr><td>Prensa de pierna</td><td>Remo con cable</td><td>Hip thrust (empuje de cadera)</td></tr>
             <tr><td>Press de pecho</td><td>Press militar</td><td>Jalón al pecho</td></tr>
             <tr><td>Remo con mancuerna</td><td>Fondos en máquina</td><td>Elevaciones laterales</td></tr>
             <tr><td>Plancha 3×30 s</td><td>Dead bug 3×10</td><td>Plancha lateral 3×20 s</td></tr>
-          </table>
+          </table></div>
 
           <h3>Cómo hacerla</h3>
           <ul>
@@ -194,7 +278,7 @@
           <div class="alert g"><b>Nunca bajes de 1,500 kcal.</b> A los 20 años, con déficit agresivo, el cuerpo empieza a quemar músculo y se adapta: después ya no baja de peso aunque comas menos. Lento y constante gana siempre.</div>
 
           <h3>Un día tipo — suma 1,790 kcal · 129 g de proteína</h3>
-          <table>
+          <div class="tw"><table>
             <tr><th>Comida</th><th>Ejemplo</th><th>kcal</th><th>prot.</th></tr>
             <tr><td>Desayuno</td><td>3 huevos revueltos + 2 rebanadas + 1 cdta de aceite</td><td>420</td><td>28 g</td></tr>
             <tr><td>Media mañana</td><td>1 yogur griego grande</td><td>180</td><td>18 g</td></tr>
@@ -202,7 +286,7 @@
             <tr><td>Merienda</td><td>Fruta + 10 dpscacadamias</td><td>200</td><td>6 g</td></tr>
             <tr><td>Cena</td><td>1 lata de atún + verduras + patata cocida</td><td>430</td><td>32 g</td></tr>
             <tr><td><b>Total</b></td><td>Te sobran ~125 kcal de margen</td><td><b>1,790</b></td><td><b>129 g</b></td></tr>
-          </table>
+          </table></div>
 
           <h3>Dónde sacar proteína barata</h3>
           <ul>
@@ -240,7 +324,7 @@
             <li>Repartido en el día, <b>no de golpe</b>. El cuerpo no la aprovecha toda junta.</li>
           </ul>
           <h3>Horario sugerido</h3>
-          <table>
+          <div class="tw"><table>
             <tr><th>Momento</th><th>Cantidad</th><th>Por qué</th></tr>
             <tr><td>Al levantarte</td><td>1 vaso (250 ml)</td><td>Despierta el intestino</td></tr>
             <tr><td>Con el desayuno</td><td>1 vaso</td><td>Con la comida se absorbe mejor</td></tr>
@@ -249,7 +333,7 @@
             <tr><td>Antes de entrenar</td><td>500 ml</td><td>30 min antes</td></tr>
             <tr><td>Después de entrenar</td><td>500 ml</td><td>Repone lo perdido</td></tr>
             <tr><td>Tarde / noche</td><td>1-2 vasos</td><td>Con la cena</td></tr>
-          </table>
+          </table></div>
           <h3>Señales de que estás bien</h3>
           <ul>
             <li>La orina debe ser <b>amarillo pálido</b>. Transparente = estás tomando de más.</li>
@@ -328,10 +412,10 @@
 
     <div class="card full">
       <h2>Últimos 14 días</h2>
-      <table>
+      <div class="tw"><table>
         <thead><tr><th>Fecha</th><th>Peso</th><th>kcal</th><th>Prot.</th><th>Agua</th><th>Fibra</th><th>Entr.</th><th>Baño</th></tr></thead>
         <tbody id="hist"></tbody>
-      </table>
+      </table></div>
       <div class="row" style="margin-top:10px">
         <button onclick="wipe()">Borrar todo el historial</button>
         <span class="mini">Se guarda solo en este navegador.</span>
