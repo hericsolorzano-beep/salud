@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan de Salud</title>
+<style>
+  :root{
+    --bg:#0f1216; --card:#171b21; --line:#252b34; --txt:#e6e9ee; --dim:#8b95a5;
+    --ac:#4ade80; --ac2:#38bdf8; --warn:#fbbf24; --bad:#f87171; --vio:#c084fc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
+  .wrap{max-width:960px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 18px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px}
+  .stat .k{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:22px;font-weight:600;margin-top:3px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:700px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .card.full{grid-column:1/-1}
+  h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--dim);margin:0 0 12px;font-weight:600}
+  label{display:block;font-size:12px;color:var(--dim);margin:9px 0 3px}
+  input[type=number],input[type=date]{width:100%;background:#0d1014;color:var(--txt);
+    border:1px solid var(--line);border-radius:7px;padding:9px;font:inherit;font-size:15px}
+  input:focus{outline:none;border-color:var(--ac2)}
+  button{font:inherit;cursor:pointer;border-radius:7px;padding:8px 12px;border:1px solid var(--line);
+    background:#0d1014;color:var(--txt);font-size:14px}
+  button:hover{border-color:var(--ac2)}
+  button.p{background:var(--ac);color:#052e16;border-color:var(--ac);font-weight:600}
+  button.on{color:var(--ac);border-color:var(--ac);background:#0f2018}
+  .row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+  .bar{height:9px;background:#0d1014;border-radius:99px;overflow:hidden;margin-top:9px;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;transition:width .25s}
+  .note{font-size:12.5px;color:var(--dim);margin-top:6px}
+  .ok{color:var(--ac)} .bad{color:var(--bad)} .warn{color:var(--warn)} .dim{color:var(--dim)}
+  details{border:1px solid var(--line);border-radius:9px;margin-bottom:9px;background:#141820}
+  summary{cursor:pointer;padding:12px 14px;font-weight:600;font-size:14.5px;list-style:none;
+    display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--dim);font-size:19px;font-weight:400}
+  details[open] summary::after{content:"−"}
+  .dbody{padding:0 14px 14px;font-size:14px;color:#cdd4df}
+  .dbody h3{color:var(--ac2);font-size:13px;text-transform:uppercase;letter-spacing:.5px;margin:16px 0 7px}
+  .dbody h3:first-child{margin-top:0}
+  .dbody ul,.dbody ol{margin:0;padding-left:19px}
+  .dbody li{margin-bottom:6px}
+  .dbody b{color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px}
+  .alert{border-left:3px solid var(--warn);background:#1d1a12;padding:11px 13px;border-radius:0 7px 7px 0;
+    font-size:13.5px;margin:10px 0}
+  .alert.r{border-left-color:var(--bad);background:#1e1414}
+  .alert.g{border-left-color:var(--ac);background:#0f1d16}
+  .qs{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .qs button{padding:7px 10px;font-size:13px}
+  .mini{font-size:11.5px;color:var(--dim);text-align:right;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Plan de Salud</h1>
+  <p class="sub">1,61 m · 98 kg → 60 kg · 20 años · meta: 1,915 kcal y 130 g de proteína al día</p>
+
+  <div class="stats">
+    <div class="stat"><div class="k">Peso actual</div><div class="v dim" id="s-wt">—</div></div>
+    <div class="stat"><div class="k">Faltan</div><div class="v dim" id="s-left">38.0 kg</div></div>
+    <div class="stat"><div class="k">IMC</div><div class="v dim" id="s-bmi">37.8</div></div>
+    <div class="stat"><div class="k">Racha (días)</div><div class="v dim" id="s-str">—</div></div>
+  </div>
+
+  <div class="alert" id="first-run">▼ Empieza abajo. No busques el número perfecto: la constancia gana.</div>
+
+  <div class="grid">
+
+    <!-- ============ HOY ============ -->
+    <div class="card full">
+      <h2>Hoy</h2>
+      <label>Fecha</label><input type="date" id="f-date">
+
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <label>Calorías · meta 1,915</label>
+          <input type="number" id="f-kcal" min="0" max="4000" step="25" placeholder="0">
+          <div class="bar"><i id="b-kcal" style="width:0%;background:var(--warn)"></i></div>
+          <div class="note" id="n-kcal">—</div>
+        </div>
+        <div>
+          <label>Proteína · meta 130 g</label>
+          <input type="number" id="f-pro" min="0" max="400" step="5" placeholder="0">
+          <div class="bar"><i id="b-pro" style="width:0%;background:var(--ac)"></i></div>
+          <div class="note" id="n-pro">—</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:14px">
+        <div>
+          <label>Agua · meta 2,500 ml</label>
+          <input type="number" id="f-agua" min="0" max="6000" step="100" placeholder="0">
+          <div class="bar"><i id="b-agua" style="width:0%;background:var(--ac2)"></i></div>
+          <div class="qs">
+            <button onclick="add('agua',250)">+250 vaso</button>
+            <button onclick="add('agua',500)">+500 botella</button>
+            <button onclick="add('agua',-250)">−250</button>
+          </div>
+          <div class="note" id="n-agua">—</div>
+        </div>
+        <div>
+          <label>Fibra · meta 25 g</label>
+          <input type="number" id="f-fibra" min="0" max="80" step="1" placeholder="0">
+          <div class="bar"><i id="b-fibra" style="width:0%;background:var(--vio)"></i></div>
+          <div class="note" id="n-fibra">—</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:16px">
+        <div>
+          <label>Entrenamiento</label>
+          <div class="row">
+            <button id="t-A" onclick="togEnt('A')">Sesión A</button>
+            <button id="t-B" onclick="togEnt('B')">Sesión B</button>
+            <button id="t-C" onclick="togEnt('C')">Sesión C</button>
+          </div>
+          <div class="note">3 fuerza + caminar todos los días.</div>
+        </div>
+        <div>
+          <label>Peso en ayunas (kg)</label>
+          <div class="row">
+            <input type="number" id="f-wt" step="0.1" min="30" max="200" placeholder="98.0" style="max-width:130px">
+            <button class="p" onclick="saveWt()">Guardar</button>
+          </div>
+          <div class="note"> después del baño, siempre en las mismas condiciones.</div>
+        </div>
+      </div>
+
+      <label>¿Cómo fue el baño hoy?</label>
+      <div class="row">
+        <button class="bow" data-b="0" onclick="setBow(0)">No fui</button>
+        <button class="bow" data-b="1" onclick="setBow(1)">Fácil</button>
+        <button class="bow" data-b="2" onclick="setBow(2)">Con esfuerzo</button>
+        <button class="bow" data-b="3" onclick="setBow(3)">Muy difícil</button>
+      </div>
+      <div class="note" id="n-bow"></div>
+    </div>
+
+    <!-- ========== ENTRENAMIENTO ========== -->
+    <div class="card full">
+      <h2>La guía completa</h2>
+
+      <details open>
+        <summary>Entrenamiento (3 fuerza + caminar)</summary>
+        <div class="dbody">
+          <div class="alert g"><b>La regla más importante:</b> el ejercicio no es para adelgazar, es para <b>quitarle grasa sin quitar músculo</b> y para que la piel no quede floja. Si solo haces dieta, bajas de peso pero pierdes músculo y te veas más flaca, no más delgada.</div>
+
+          <h3>Las 3 sesiones (cuerpo completo, 3 veces por semana)</h3>
+          <p>Alterna A, B, C — un día de descanso entre cada una.</p>
+          <table>
+            <tr><th>Sesión A</th><th>Sesión B</th><th>Sesión C</th></tr>
+            <tr><td>Sentadilla en máquina</td><td>Peso muerto rumano</td><td>Zancadas (sentadilla split)</td></tr>
+            <tr><td>Prensa de pierna</td><td>Remo con cable</td><td>Hip thrust (empuje de cadera)</td></tr>
+            <tr><td>Press de pecho</td><td>Press militar</td><td>Jalón al pecho</td></tr>
+            <tr><td>Remo con mancuerna</td><td>Fondos en máquina</td><td>Elevaciones laterales</td></tr>
+            <tr><td>Plancha 3×30 s</td><td>Dead bug 3×10</td><td>Plancha lateral 3×20 s</td></tr>
+          </table>
+
+          <h3>Cómo hacerla</h3>
+          <ul>
+            <li><b>3 series de 8 a 12 repeticiones.</b> Todas las máquinas sirven: no necesitas barra ni pesas.</li>
+            <li><b>Empieza con un peso cómodo.</b> Si las 12 repes salen bien y con buena forma, la próxima vez sube un poco.</li>
+            <li>Descansa 60 a 90 segundos entre series. Toda la sesión dura <b>35-45 minutos</b>.</li>
+            <li><b>Nunca te saltes el calentamiento:</b> 5 minutos andando o en el plano inclinado.</li>
+            <li>Si la sesión te cansó mucho, la siguiente baja un poco el peso. No es retroceso.</li>
+          </ul>
+
+          <h3>Caminar (todos los días)</h3>
+          <ul>
+            <li><b>30 a 45 minutos al día.</b> Es lo que más quema sin castigar las rodillas.</li>
+            <li>Cuenta con el teléfono o con el reloj.</li>
+            <li>En las primeras 4 semanas, en <b>plano</b>. Luego ve subiendo la pendiente poco a poco.</li>
+          </ul>
+
+          <div class="alert"><b>No corras ni saltes por ahora.</b> A 98 kg las rodillas y los tobillos reciben un impacto enorme, y ahí es donde vienen las lesiones. Caminar, bicicleta, elíptica o natación son mejores. El cardio de impacto lo puedes añadir más adelante, con peso más bajo.</div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Comer: 1,915 kcal y 130 g de proteína</summary>
+        <div class="dbody">
+          <div class="alert g"><b>Nunca bajes de 1,500 kcal.</b> A los 20 años, con déficit agresivo, el cuerpo empieza a quemar músculo y se adapta: después ya no baja de peso aunque comas menos. Lento y constante gana siempre.</div>
+
+          <h3>Un día tipo — suma 1,790 kcal · 129 g de proteína</h3>
+          <table>
+            <tr><th>Comida</th><th>Ejemplo</th><th>kcal</th><th>prot.</th></tr>
+            <tr><td>Desayuno</td><td>3 huevos revueltos + 2 rebanadas + 1 cdta de aceite</td><td>420</td><td>28 g</td></tr>
+            <tr><td>Media mañana</td><td>1 yogur griego grande</td><td>180</td><td>18 g</td></tr>
+            <tr><td>Comida</td><td>150 g de pollo + 1 taza de arroz + ensalada con aceite</td><td>560</td><td>45 g</td></tr>
+            <tr><td>Merienda</td><td>Fruta + 10 dpscacadamias</td><td>200</td><td>6 g</td></tr>
+            <tr><td>Cena</td><td>1 lata de atún + verduras + patata cocida</td><td>430</td><td>32 g</td></tr>
+            <tr><td><b>Total</b></td><td>Te sobran ~125 kcal de margen</td><td><b>1,790</b></td><td><b>129 g</b></td></tr>
+          </table>
+
+          <h3>Dónde sacar proteína barata</h3>
+          <ul>
+            <li><b>Huevos</b> (6 g c/u) · <b>Pollo</b> (25 g en 100 g) · <b>Atún en lata</b> (26 g en 100 g)</li>
+            <li><b>Queso</b> · <b>Leche</b> · <b>Yogur</b> · <b>Frijoles</b> (buenos y baratos)</li>
+            <li>Y también: <b>pescado fresco</b> (sardinas, mero), jamón, pavo, claras de huevo</li>
+          </ul>
+
+          <h3>Reglas que importan más que la cuenta exacta</h3>
+          <ul>
+            <li><b>Proteína en cada comida</b>, no solo en una. Es lo que preserva músculo.</li>
+            <li><b>No bebas jugo ni soda.</b> Un refresco de 500 ml son ~200 kcal y cero hambre después.</li>
+            <li><b>El aceite no es enemigo</b>, pero cuenta: 1 cucharada = 120 kcal. Mídelo.</li>
+            <li><b>Peso los primeros 2 meses.</b> Después, con mirar cómo te queda la ropa.</li>
+            <li><b>No hagas dieta saltando comidas.</b> Salta comida hoy y mañana comes el doble: eso se llama atracón y es el motivo #1 de que la gente no Baja de peso.</li>
+          </ul>
+
+          <h3>Lo que va a pasar (para que no te asustes)</h3>
+          <ul>
+            <li><b>Peso real: ~0.45 kg por semana.</b> Ese ritmo se ve lento en la báscula, pero es el que no se pierde.</li>
+            <li><b>Los primeros 1-2 kilos en la primera semana</b> son agua, no grasa. No te ilusiones con eso.</li>
+            <li>La báscula sube y baja 1-2 kg por día (agua, sal, retención, ciclo menstrual). <b>Mira la tendencia semanal, nunca el día.</b></li>
+            <li><b>La ropa afloja antes que la báscula.</b> Señal de que va funcionando.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>Agua (2,500 ml al día)</summary>
+        <div class="dbody">
+          <div class="alert"><b>No te propongas 2,9 litros.</b> Ese cálculo de 30 ml por kilo de peso es demasiado para ti. Con 98 kg da casi 3 L, y beber de más sin razón es peligroso. Lo que sí funciona es la regla práctica.</div>
+          <h3>Cómo tomarlo</h3>
+          <ul>
+            <li><b>2,000 ml de base</b> + <b>500 ml por cada hora de ejercicio</b></li>
+            <li>Repartido en el día, <b>no de golpe</b>. El cuerpo no la aprovecha toda junta.</li>
+          </ul>
+          <h3>Horario sugerido</h3>
+          <table>
+            <tr><th>Momento</th><th>Cantidad</th><th>Por qué</th></tr>
+            <tr><td>Al levantarte</td><td>1 vaso (250 ml)</td><td>Despierta el intestino</td></tr>
+            <tr><td>Con el desayuno</td><td>1 vaso</td><td>Con la comida se absorbe mejor</td></tr>
+            <tr><td>Media mañana</td><td>1 vaso</td><td>Antes de que tenga hambre de más</td></tr>
+            <tr><td>Con la comida</td><td>1-2 vasos</td><td>Bebe antes y después, no durante</td></tr>
+            <tr><td>Antes de entrenar</td><td>500 ml</td><td>30 min antes</td></tr>
+            <tr><td>Después de entrenar</td><td>500 ml</td><td>Repone lo perdido</td></tr>
+            <tr><td>Tarde / noche</td><td>1-2 vasos</td><td>Con la cena</td></tr>
+          </table>
+          <h3>Señales de que estás bien</h3>
+          <ul>
+            <li>La orina debe ser <b>amarillo pálido</b>. Transparente = estás tomando de más.</li>
+            <li>Orinar unas <b>6-8 veces al día</b> es normal.</li>
+            <li>Si te da sed constante, come un poco de sal: a veces no es sed sino falta de sal.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary>Ir al baño sin esfuerzo</summary>
+        <div class="dbody">
+          <h3>Lo que hace que funcione</h3>
+          <ul>
+            <li><b>Fibra: 25-30 g al día.</b> De nada sirve si no hay agua junto. Van de la mano.</li>
+            <li><b>Agua suficiente</b> — ver la sección anterior. Sin agua, la fibra se atasca.</li>
+            <li><b>Movimiento diario</b> — caminar sola ya ayuda al intestino.</li>
+            <li><b>Sentarse a la misma hora</b>, ideal 20-30 min después de desayunar. El intestino tiene reflejos ahí. Incluye hasta los 15-20 min aunque no salga nada.</li>
+            <li><b>Un banco alto</b> (un ladrillo bajo los pies) ayuda a la postura al evacuar.</li>
+            <li><b>Nada de esfuerzo forzado.</b> No empujes y no te fuerces.</li>
+          </ul>
+          <h3>Alimentos que ayudan cada día</h3>
+          <ul>
+            <li><b>Avena integral o pan integral</b> — 4-6 g de fibra por porción</li>
+            <li><b>Frijoles/lentejas</b> — baratísimos y cargados de fibra</li>
+            <li><b>Kiwis, ciruelas, ciruela pasa, manzana con piel</b> — uno o dos al día</li>
+            <li><b>Verdura de hoja, zanahoria, brócoli</b></li>
+            <li><b>Semillas de linaza</b> (una cucharada) y de chía</li>
+            <li><b>Yogur</b> con bacterias vivas (ayuda al tránsito)</li>
+          </ul>
+          <div class="alert r"><b>Ve al médico si:</b> hay sangre en las heces, dolor fuerte en el abdomen, o si llevas más de 2 semanas sin ir. Eso ya no es estreñimiento y hay que revisarlo.</div>
+        </div>
+      </details>
+
+      <details>
+        <summary>Piel y dermatitis</summary>
+        <div class="dbody">
+          <div class="alert r"><b>Importante: no puedo diagnosticar su dermatitis ni recetarle nada.</b> Un dermatólogo tiene que verla, porque la dermatitis cambia de tratamiento según el tipo (atópica, seborreica, de contacto, con infección…). Lo de aquí es cuidado general de la barrera de la piel, que sirve en todos los casos y no hace daño.</div>
+
+          <h3>Cuidado general de la piel inflamada</h3>
+          <ul>
+            <li><b> Duchas cortas y templadas</b>, nunca muy calientes. El agua caliente agrava la comezón.</li>
+            <li><b>Sin jabón dentro de la ducha.</b> Solo agua en el cuerpo; jabón solo en partes íntimas y axilas.</li>
+            <li><b>Hidratante sin fragancia, cada día</b>, aunque la piel se vea bien. Este es el punto más importante: la dermatitis va y viene según lo cuidada esté la barrera.</li>
+            <li>Aplícalo <b>con la piel todavía un poco húmeda</b> y da golpecitos, no frotes.</li>
+            <li><b>Ropa de algodón</b>, suelta, y ropa interior nueva cada día.</li>
+            <li><b>No te rasques.</b> Si la picazón es fuerte, el médico puede recetarte algo; el rascado es lo que la empeora y termina dejando marcas.</li>
+            <li>Sobre esto: evita los productos con alcohol, perfume o "extractos naturales" — muchos "naturales" irritan más que los simples.</li>
+          </ul>
+
+          <h3>Estiramiento de la piel (tu preocupación)</h3>
+          <div class="alert"><b>No te voy a prometer que no quedará nada de piel floja, porque no sería verdad.</b> Perder 38 kg es una cantidad importante y es posible que quede cierta flojedad, sobre todo en el abdomen. Lo que SÍ puedo decirte es qué reduce mucho el riesgo:</div>
+          <ul>
+            <li><b>Entrenar fuerza es lo número uno.</b> El músculo le da volumen debajo de la piel y la llena. Sin músculo, la piel no tiene de dónde sostenerse. Por eso el ejercicio no es opcional en este plan.</li>
+            <li><b>Bajar despacio.</b> La piel necesita tiempo para retraerse. Un ritmo de 0.45 kg/semana le da esa oportunidad; las dietas rápidas la dejan colgando.</li>
+            <li><b>Proteína alta</b> (130 g) ayuda a construir ese músculo que sostiene.</li>
+            <li><b>Agua y fibra</b> ayudan a que no se inflame, y la piel inflamada se ve peor.</li>
+            <li><b>Genética</b> es el factor #1 y no depende de ti. Hay gente que baja 40 kg sin apenas nada.</li>
+            <li><b>Tiene 20 años.</b> Su piel todavía tiene capacidad de seguir produciendo colágeno, algo que a los 40 ya no pasa igual.</li>
+            <li><b>La piel sigue adaptándose hasta 1-2 años después</b> de llegar al peso final. La vez que más mejora la piel es en ese período, no el día que llegas.</li>
+          </ul>
+          <div class="alert g"><b>La verdad con la que te quiero dejar:</b> la meta de 60 kg es un peso sano (IMC 23). Va a tomar alrededor de <b>19 meses</b> a un ritmo seguro. Si alguien te promete 60 kg en 3 meses, te está vendiendo algo. El ritmo lento es el que te deja el cuerpo entero, no solo menos peso.</div>
+        </div>
+      </details>
+
+      <div class="alert r" style="margin-top:12px"><b>Esto es un plan general, no una consulta médica.</b> Antes de empezar, que un médico y un nutricionista revisen sus números. Pídele:</div>
+      <div class="dbody" style="padding:0 14px 14px">
+        <ul>
+          <li>Análisis: hemograma, glucosa, TSH/tiroides, vitamina D, B12, hierro/ferritina, colesterol y triglicéridos,-function renal</li>
+          <li>Descarta anemia o tiroides, que son cosas que <b>impiden</b> que la dieta funcione</li>
+          <li>Que le revisen la dermatitis con calma</li>
+          <li>Si va a hacer dieta, que la supervise alguien: a los 20 años no es solo "comer menos"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h2>Últimos 14 días</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Peso</th><th>kcal</th><th>Prot.</th><th>Agua</th><th>Fibra</th><th>Entr.</th><th>Baño</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table>
+      <div class="row" style="margin-top:10px">
+        <button onclick="wipe()">Borrar todo el historial</button>
+        <span class="mini">Se guarda solo en este navegador.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const K='plan-salud-v1', KCAL=1915, PRO=130, AGUA=2500, FIBRA=25, INICIO=98.0, META=60.0, ALT=1.61;
+const $=id=>document.getElementById(id);
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const load=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}};
+let D=load();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+const day=id=>{if(!D[id])D[id]={};return D[id]};
+
+function set(id,val,ok,color){
+  $(id).textContent=val; $(id).className='note '+(ok?'ok':'');
+  if(color) $(id).style.color=color; else $(id).style.color='';
+}
+function add(k,n){
+  const d=day($('f-date').value); d[k]=Math.max(0,(+d[k]||0)+n); save(); render();
+}
+function togEnt(k){
+  const d=day($('f-date').value); d.ent = d.ent===k?null:k; save(); render();
+}
+function setBow(v){
+  const d=day($('f-date').value); d.bow = d.bow===v?null:v; save(); render();
+}
+function saveWt(){
+  const v=parseFloat($('f-wt').value); if(!v) return;
+  day($('f-date').value).wt=v; save(); render();
+}
+function wipe(){ if(confirm('¿Borrar todo el historial?')){localStorage.removeItem(K);D={};render();} }
+
+const BOW={0:['No fui','warn'],1:['Fácil','ok'],2:['Con esfuerzo','warn'],3:['Muy difícil','bad']};
+
+function render(){
+  const today=iso(new Date());
+  if(!$('f-date').value) $('f-date').value=today;
+  const d=day($('f-date').value);
+
+  // calorías
+  const k=+d.kcal||0;
+  $('f-kcal').value=k;
+  $('b-kcal').style.width=Math.min(100,k/KCAL*100)+'%';
+  const falta=KCAL-k;
+  set('n-kcal', k===0?'Sin registrar':falta>0?`faltan ${falta} kcal`:`${-falta} kcal de más`,
+      k>0&&falta<=0, k>KCAL+150?'var(--bad)':falta>0?'':'var(--ac)');
+
+  // proteína
+  const p=+d.pro||0;
+  $('f-pro').value=p;
+  $('b-pro').style.width=Math.min(100,p/PRO*100)+'%';
+  set('n-pro', p===0?'Sin registrar':p>=PRO?`meta alcanzada (+${p-PRO} g)`:`faltan ${PRO-p} g`, p>=PRO);
+
+  // agua
+  const a=+d.agua||0;
+  $('f-agua').value=a;
+  $('b-agua').style.width=Math.min(100,a/AGUA*100)+'%';
+  set('n-agua', `${a} / ${AGUA} ml · faltan ${Math.max(0,AGUA-a)} ml`, a>=AGUA);
+
+  // fibra
+  const f=+d.fibra||0;
+  $('f-fibra').value=f;
+  $('b-fibra').style.width=Math.min(100,f/FIBRA*100)+'%';
+  set('n-fibra', f===0?'Sin registrar':f>=FIBRA?`meta alcanzada`:`faltan ${FIBRA-f} g`, f>=FIBRA);
+
+  // entrenamiento
+  ['A','B','C'].forEach(x=>$('t-'+x).className = d.ent===x?'on':'');
+
+  // baño
+  document.querySelectorAll('.bow').forEach(b=>b.classList.toggle('on', d.bow===+b.dataset.b));
+  $('n-bow').textContent = d.bow==null?'':(d.bow>=2
+    ? 'Si fue difícil hoy: sube fibra + agua + camina. Si se repite 3 días, médico.'
+    : d.bow===1?'Bien. Mantén la fibra y el agua.':'');
+  $('n-bow').style.color = d.bow>=2?'var(--warn)':'';
+
+  $('f-wt').value = d.wt||'';
+
+  // estadísticas
+  const ws=Object.keys(D).filter(k=>D[k].wt).sort();
+  const last=ws.length?+D[ws[ws.length-1]].wt:null;
+  setStat('s-wt', last?last.toFixed(1)+' kg':'—', last?'':'var(--dim)');
+  const faltan=last?Math.max(0,last-META):INICIO-META;
+  setStat('s-left', faltan.toFixed(1)+' kg', '');
+  setStat('s-bmi', last?(last/ALT**2).toFixed(1):'37.8', last?(last/ALT**2<25?'var(--ac)':''):'var(--dim)');
+
+  let str=0,cur=today;
+  if(!D[cur]) cur=iso(new Date(Date.now()-864e5));
+  while(D[cur] && ((+D[cur].kcal||0)>0 || (+D[cur].agua||0)>0 || D[cur].wt)){str++;cur=iso(new Date(Date.parse(cur+'T12:00:00')-864e5));}
+  setStat('s-str', str, str>0?'var(--ac)':'var(--dim)');
+  $('first-run').style.display = Object.keys(D).some(k=>D[k].kcal||D[k].agua||D[k].wt)?'none':'';
+
+  let rows='';
+  for(let i=0;i<14;i++){
+    const key=iso(new Date(Date.now()-i*864e5)), v=D[key];
+    if(!v||(!v.kcal&&!v.pro&&!v.agua&&!v.wt&&!v.ent&&v.bow==null)) continue;
+    const c=x=>x?'<span class="'+(x>=1?'ok':'dim')+'">'+x+'</span>':'<span class="dim">—</span>';
+    rows+=`<tr><td class="${key===today?'ok':'dim'}">${key.slice(5)}${key===today?' · hoy':''}</td>`
+      +`<td>${v.wt||'—'}</td>`
+      +`<td class="${v.kcal>KCAL?'bad':v.kcal?'ok':'dim'}">${v.kcal||'—'}</td>`
+      +`<td>${c(v.pro)}</td><td>${c(v.agua)}</td><td>${c(v.fibra)}</td>`
+      +`<td class="${v.ent?'ok':'dim'}">${v.ent||'—'}</td>`
+      +`<td class="${v.bow>=2?'warn':v.bow===1?'ok':'dim'}">${v.bow==null?'—':BOW[v.bow][0]}</td></tr>`;
+  }
+  $('hist').innerHTML=rows||'<tr><td colspan="8" class="dim">Sin datos todavía. Registra el día de hoy para empezar.</td></tr>';
+}
+function setStat(id,val,color){const e=$(id);e.textContent=val;e.style.color=color||'';}
+
+['kcal','pro','agua','fibra'].forEach(k=>$(('f-'+k)).addEventListener('change',()=>{
+  const d=day($('f-date').value); d[k]=Math.max(0,+$('f-'+k).value||0); save(); render();
+}));
+$('f-date').addEventListener('change',render);
+render();
+</script>
+</body>
+</html>
